@@ -1,0 +1,270 @@
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>🐺 Woof! </title>
+	<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+	<style>
+		body { 
+			font-family: Arial, sans-serif; 
+			background: #121212; 
+			color: #e0e0e0; 
+			margin: 0; 
+			padding: 0; 
+			display: flex; 
+			height: 100vh; 
+			overflow: hidden; 
+		}
+		.container { 
+			display: flex; 
+			width: 100%; 
+			height: 100%; 
+		}
+		.column {
+			flex: 1;
+			padding: 20px;
+			box-sizing: border-box;
+			overflow-y: auto;
+		}
+		.column::-webkit-scrollbar {
+			width: 10px;
+		}
+		.column::-webkit-scrollbar-track {
+			background: #1e1e1e;
+		}
+		.column::-webkit-scrollbar-thumb {
+			background: #444;
+			border-radius: 5px;
+		}
+		.column::-webkit-scrollbar-thumb:hover {
+			background: #666;
+		}
+        textarea {
+			flex: 1;
+			width: 100%;
+			background: #1e1e1e;
+			color: #e0e0e0;
+			border: 1px solid #444;
+			padding: 10px;
+			font-size: 16px;
+			resize: none;
+			border-radius: 5px;
+		}
+        .editor {
+			display: flex;
+			flex-direction: column;
+			height: 100%;
+		}
+        a {
+			color:#e0e0e0
+		}
+        pre { 
+			background: #1e1e1e; 
+			padding: 10px; 
+			border-radius: 5px; 
+		}
+        button { margin-top: 10px; width: 100%; padding: 10px; cursor: pointer; background: #333; color: #fff; border: none; border-radius: 5px; }
+		button:hover { background: #555; }
+
+        /* Small floating button */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            max-width: 90%;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-button {
+            cursor: pointer;
+            font-size: 18px;
+            border: none;
+            background: none;
+        }
+
+        pre {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+	</style>
+</head>
+<body>
+
+<div class="container">
+	<div class="column">
+		<div id="output"></div>
+	</div>
+
+	<div class="column">
+		<div class="editor">
+            <button class="help-button" onclick="toggleModal()">?</button>
+            <div id="helpModal" class="modal">
+                <div class="modal-header">
+                    <strong>Markdown Syntax Guide</strong>
+                    <button class="close-button" onclick="toggleModal()">×</button>
+                </div>
+                <hr>
+                <p>Basic Formatting:</p>
+                <pre>
+# Heading 1
+## Heading 2
+### Heading 3
+
+**Bold**
+*Italic*
+~~Strikethrough~~
+
+[Link](https://example.com)
+![Image](https://via.placeholder.com/100)
+
+- Bullet list
+1. Numbered list
+
+> Blockquote
+
+`Inline code`
+
+Code block:
+```javascript
+console.log("Hello, world!");
+```
+
+Table Example:
+
+| Table | Example |
+|-------|---------|
+| Row 1 | Data 1  |
+| Row 2 | Data 2  |
+
+Horizontal Rule:
+---
+        </pre>
+            </div>
+			<input type="text" id="filename" placeholder="Enter filename (without extension)" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #333; color: #fff; border: none; border-radius: 5px;">
+			<textarea id="markdown-input" placeholder="Type Markdown here..."></textarea>
+			<button id="save-html">Save as HTML</button>
+			<button id="save-md">Save as Markdown</button>
+            <center><pre>Powered By 🐺 <a href="https://www.obscurechannel.com/woof/" target="_blank">Woof!</a></pre></center>
+		</div>
+	</div>
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.getElementById("markdown-input");
+
+    // get saved text from session storage
+    if (sessionStorage.getItem("savedText")) {
+        textarea.value = sessionStorage.getItem("savedText");
+    }
+
+    // save text to session storage on input
+    textarea.addEventListener("input", function () {
+        sessionStorage.setItem("savedText", textarea.value);
+        });
+    });
+
+function toggleModal() {
+            const modal = document.getElementById("helpModal");
+            modal.classList.toggle("show");
+        }
+	const input = document.getElementById("markdown-input");
+	const output = document.getElementById("output");
+	const saveHtmlButton = document.getElementById("save-html");
+	const saveMdButton = document.getElementById("save-md");
+	const filenameInput = document.getElementById("filename");
+
+	function renderMarkdown() {
+		output.innerHTML = marked.parse(input.value);
+		document.querySelectorAll("pre code").forEach(block => hljs.highlightElement(block));
+	}
+
+	input.addEventListener("input", renderMarkdown);
+    
+
+	function saveFile(content, extension, mimeType) {
+		const filename = filenameInput.value.trim() || "post";
+		const blob = new Blob([content], { type: mimeType });
+		const a = document.createElement("a");
+		a.href = URL.createObjectURL(blob);
+		a.download = `${filename}.${extension}`;
+		a.click();
+	}
+
+	saveHtmlButton.addEventListener("click", () => {
+
+        const today = new Date();
+		const formattedDate = `${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}.${today.getFullYear()}`;
+		const fullHTML = `
+        <html>
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Woof Post</title>
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+			<style>
+				body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; background: #121212; color: #e0e0e0; }
+				pre { background: #1e1e1e; padding: 10px; border-radius: 5px; }
+				a { color:#e0e0e0}
+			</style>
+		</head>
+		<body>
+            <p>${formattedDate}</p>
+			<p>${output.innerHTML}</p>
+			<center><pre>Powered By 🐺 <a href="https://www.obscurechannel.com/woof/" target="_blank">Woof!</a></pre></center>
+		</body>
+		</html>`;
+		saveFile(fullHTML, "html", "text/html");
+	});
+
+	saveMdButton.addEventListener("click", () => {
+		saveFile(input.value, "md", "text/markdown");
+	});
+
+	input.value = "# 🐺 Woof! \n\n#### A stupid simple markdown to html renderer. \n\nGive it a go! Start typing to preview...\n\n<style> img {max-width: 100%; max-height: 100%}</style>\n\n![image](https://x42.obscurechannel.com/art/dog-days.jpg)";
+	renderMarkdown();
+</script>
+
+</body>
+</html>
