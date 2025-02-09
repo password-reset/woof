@@ -4,7 +4,8 @@
 
 Demo: https://www.obscurechannel.com/woof
 
-![image](https://x42.obscurechannel.com/art/dog-days.jpg)
+![image](https://github.com/user-attachments/assets/50516800-ae88-4b91-91ad-da2f086e2efc)
+
 
 ```
 This is free and unencumbered software released into the public domain.
